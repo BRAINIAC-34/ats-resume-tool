@@ -35,7 +35,7 @@ def check_password():
         st.header("🔒 Premium Access Only")
         st.write("Enter the Access Code you received on Whop after purchase.")
         st.text_input("Access Code", type="password", on_change=password_entered, key="password")
-        st.info("Don't have a code? [Get Lifetime Access Here](https://whop.com/checkout/plan_WRE4Xj2R85QUA)") # <--- PASTE YOUR WHOP LINK HERE
+        st.info("Don't have a code? [Get Lifetime Access Here](https://whop.com/checkout/plan_hcdZ7zla5FK21)") # <--- PASTE YOUR WHOP LINK HERE
         return False
     elif not st.session_state["password_correct"]:
         # Password incorrect, show input again.
