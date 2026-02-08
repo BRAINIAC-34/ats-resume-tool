@@ -53,7 +53,7 @@ if check_password():
     # Configure Gemini
     try:
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('gemini-pro') # Free and fast model
+        model = genai.GenerativeModel('gemini-1.5-flash')
     except Exception as e:
         st.error("System Error: API Key not found.")
         st.stop()
