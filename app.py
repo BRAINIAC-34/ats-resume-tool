@@ -123,7 +123,7 @@ if not check_password():
         st.write("✅ Instant Access Code Delivery")
         
         # BUY BUTTON - REPLACE LINK BELOW
-        st.link_button("👉 GET INSTANT ACCESS ($9)", "YOUR_WHOP_CHECKOUT_LINK") 
+        st.link_button("👉 GET INSTANT ACCESS ($9)", "https://whop.com/checkout/plan_hcdZ7zla5FK21") 
         
         st.caption("Secure payment via Whop. Instant access.")
         st.markdown('</div>', unsafe_allow_html=True)
