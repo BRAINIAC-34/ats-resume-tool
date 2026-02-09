@@ -8,64 +8,72 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- CUSTOM CSS FOR "LANDING PAGE" VIBE ---
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 3rem;
-        font-weight: 700;
-        text-align: center;
-        color: #1E1E1E;
-        margin-bottom: 0px;
-    }
-    .sub-header {
-        font-size: 1.5rem;
-        text-align: center;
-        color: #4CAF50;
-        margin-bottom: 30px;
-    }
-    .feature-box {
-        background-color: #f0f2f6;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-    }
-    .price-tag {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #FF4B4B;
-        text-align: center;
-    }
-    .stButton>button {
-        width: 100%;
-        font-weight: bold;
-        border-radius: 8px;
-        height: 50px;
-    }
-</style>
-""", unsafe_allow_html=True)
+# --- AUTHENTICATION LOGIC (MOVED TO TOP) ---
+def password_entered():
+    """Checks the password entered by the user."""
+    if st.session_state["password"] == st.secrets["ACCESS_CODE"]:
+        st.session_state["password_correct"] = True
+        # Don't delete the key immediately to avoid errors, just mark as correct
+    else:
+        st.session_state["password_correct"] = False
 
-# --- AUTHENTICATION LOGIC ---
 def check_password():
     """Returns `True` if the user had the correct password."""
-    
-    def password_entered():
-        if st.session_state["password"] == st.secrets["ACCESS_CODE"]:
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]
-        else:
-            st.session_state["password_correct"] = False
-
     if "password_correct" not in st.session_state:
-        # User has not entered a password yet. Show the LANDING PAGE.
+        # User has not entered a password yet.
         return False
     elif not st.session_state["password_correct"]:
         # User entered incorrect password.
-        st.error("😕 Invalid Code. Check your email or Whop dashboard.")
         return False
     else:
         # Password correct.
         return True
+
+# --- CUSTOM CSS (FIXED FOR DARK MODE) ---
+st.markdown("""
+<style>
+    /* Main Headers - Auto adapt to Light/Dark Mode */
+    .main-header {
+        font-size: 3rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 0px;
+        /* No fixed color here, let Streamlit decide */
+    }
+    .sub-header {
+        font-size: 1.5rem;
+        text-align: center;
+        opacity: 0.8; /* Slightly transparent instead of fixed gray */
+        margin-bottom: 30px;
+    }
+    .feature-box {
+        background-color: #262730; /* Darker grey for dark mode support */
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #4CAF50; /* Green border to make it pop */
+    }
+    .price-tag {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #4CAF50; /* Bright Green */
+        text-align: center;
+    }
+    .stButton>button {
+        width: 100%;
+        background-color: #FF4B4B;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        height: 50px;
+        border: none;
+    }
+    .stButton>button:hover {
+        background-color: #FF2B2B;
+        color: white;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # --- MAIN APP ROUTING ---
 
@@ -114,15 +122,21 @@ if not check_password():
         st.write("✅ Lifetime Access (No subscriptions)")
         st.write("✅ Instant Access Code Delivery")
         
-        # BUY BUTTON
+        # BUY BUTTON - REPLACE LINK BELOW
         st.link_button("👉 GET INSTANT ACCESS ($9)", "YOUR_WHOP_CHECKOUT_LINK") 
+        
         st.caption("Secure payment via Whop. Instant access.")
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("---")
 
     # LOGIN SECTION (For existing users)
+    # This checks for the password variable
     with st.expander("🔑 Already have an access code? Login here"):
+        # We use a unique key for the widget to trigger the callback
+        if "password_correct" in st.session_state and st.session_state["password_correct"] == False:
+            st.error("😕 Invalid Code. Please check your code.")
+            
         st.text_input("Enter Access Code", type="password", on_change=password_entered, key="password")
         
 else:
@@ -133,7 +147,7 @@ else:
     # Configure Gemini
     try:
         genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
     except Exception as e:
         st.error("System Error: API Key not found.")
         st.stop()
@@ -185,5 +199,5 @@ else:
                     st.error(f"An error occurred: {e}")
             
     if st.button("Logout"):
-        del st.session_state["password_correct"]
+        st.session_state["password_correct"] = False
         st.rerun()
