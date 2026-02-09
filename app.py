@@ -1,54 +1,134 @@
 import streamlit as st
 import google.generativeai as genai
 
-# --- CONFIGURATION ---
-# We will set the API key in the deployment settings later
-# DO NOT paste your API key here directly for security reasons
+# --- PAGE CONFIG ---
+st.set_page_config(
+    page_title="ATS Resume Crusher",
+    page_icon="🚀",
+    layout="centered"
+)
 
-# --- PAGE SETUP ---
-st.set_page_config(page_title="ATS Resume Crusher", page_icon="🚀")
-
-# --- CSS FOR CLEAN LOOK ---
+# --- CUSTOM CSS FOR "LANDING PAGE" VIBE ---
 st.markdown("""
 <style>
+    .main-header {
+        font-size: 3rem;
+        font-weight: 700;
+        text-align: center;
+        color: #1E1E1E;
+        margin-bottom: 0px;
+    }
+    .sub-header {
+        font-size: 1.5rem;
+        text-align: center;
+        color: #4CAF50;
+        margin-bottom: 30px;
+    }
+    .feature-box {
+        background-color: #f0f2f6;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .price-tag {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #FF4B4B;
+        text-align: center;
+    }
     .stButton>button {
         width: 100%;
-        background-color: #4CAF50;
-        color: white;
         font-weight: bold;
+        border-radius: 8px;
+        height: 50px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- AUTHENTICATION (THE PAYWALL) ---
+# --- AUTHENTICATION LOGIC ---
 def check_password():
     """Returns `True` if the user had the correct password."""
+    
     def password_entered():
         if st.session_state["password"] == st.secrets["ACCESS_CODE"]:
             st.session_state["password_correct"] = True
-            del st.session_state["password"]  # specific logic to clean up
+            del st.session_state["password"]
         else:
             st.session_state["password_correct"] = False
 
     if "password_correct" not in st.session_state:
-        # First run, show input for password.
-        st.header("🔒 Premium Access Only")
-        st.write("Enter the Access Code you received on Whop after purchase.")
-        st.text_input("Access Code", type="password", on_change=password_entered, key="password")
-        st.info("Don't have a code? [Get Lifetime Access Here](https://whop.com/checkout/plan_hcdZ7zla5FK21)") # <--- PASTE YOUR WHOP LINK HERE
+        # User has not entered a password yet. Show the LANDING PAGE.
         return False
     elif not st.session_state["password_correct"]:
-        # Password incorrect, show input again.
-        st.header("🔒 Premium Access Only")
-        st.text_input("Access Code", type="password", on_change=password_entered, key="password")
-        st.error("😕 Invalid Code. Please check your email/Whop dashboard.")
+        # User entered incorrect password.
+        st.error("😕 Invalid Code. Check your email or Whop dashboard.")
         return False
     else:
         # Password correct.
         return True
 
-if check_password():
-    # --- APP LOGIC STARTS HERE ---
+# --- MAIN APP ROUTING ---
+
+if not check_password():
+    # ==========================
+    # LANDING PAGE (SALES PAGE)
+    # ==========================
+    
+    # Hero Section
+    st.markdown('<div class="main-header">🚀 Beat the ATS Bots</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-header">Stop getting auto-rejected. Optimize your resume keywords in 5 seconds using AI.</div>', unsafe_allow_html=True)
+
+    # The Problem & Solution
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info("❌ **The Problem**\n\n75% of resumes are rejected by ATS bots before a human ever sees them because they miss specific keywords.")
+    with col2:
+        st.success("✅ **The Solution**\n\nThis tool scans the Job Description and rewrites your resume bullets to include the EXACT keywords missing.")
+
+    st.markdown("---")
+
+    # How it Works (Visuals)
+    st.subheader("⚙️ How It Works")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.markdown("### 1. Paste")
+        st.write("Paste your Resume & the Job Description.")
+    with c2:
+        st.markdown("### 2. Scan")
+        st.write("AI identifies missing keywords instantly.")
+    with c3:
+        st.markdown("### 3. Hired")
+        st.write("Get rewritten bullet points that pass the bot.")
+
+    st.markdown("---")
+
+    # Pricing Section
+    st.markdown('<div style="text-align: center"><h2>💸 Launch Price: Lifetime Access</h2></div>', unsafe_allow_html=True)
+    
+    p_col1, p_col2, p_col3 = st.columns([1, 2, 1])
+    with p_col2:
+        st.markdown('<div class="feature-box" style="text-align: center;">', unsafe_allow_html=True)
+        st.markdown("<s>Standard Price: $49</s>", unsafe_allow_html=True)
+        st.markdown('<div class="price-tag">$9 ONLY</div>', unsafe_allow_html=True)
+        st.write("✅ Unlimited Resume Scans")
+        st.write("✅ Lifetime Access (No subscriptions)")
+        st.write("✅ Instant Access Code Delivery")
+        
+        # BUY BUTTON
+        st.link_button("👉 GET INSTANT ACCESS ($9)", "YOUR_WHOP_CHECKOUT_LINK") 
+        st.caption("Secure payment via Whop. Instant access.")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    # LOGIN SECTION (For existing users)
+    with st.expander("🔑 Already have an access code? Login here"):
+        st.text_input("Enter Access Code", type="password", on_change=password_entered, key="password")
+        
+else:
+    # ==========================
+    # THE TOOL (LOGGED IN USER)
+    # ==========================
     
     # Configure Gemini
     try:
@@ -59,7 +139,7 @@ if check_password():
         st.stop()
 
     st.title("🚀 ATS Resume Optimizer")
-    st.write("Paste your current resume and the job description. AI will rewrite your bullets to match the keywords.")
+    st.write("Welcome back! Let's get you that interview.")
 
     # Inputs
     col1, col2 = st.columns(2)
@@ -103,3 +183,7 @@ if check_password():
                     
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
+            
+    if st.button("Logout"):
+        del st.session_state["password_correct"]
+        st.rerun()
