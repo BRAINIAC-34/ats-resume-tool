@@ -1,11 +1,3 @@
-<script
-  defer
-  data-website-id="dfid_NBY3CWRCKPIHgH9xmArMf"
-  data-domain="ats-crusher.streamlit.app"
-  src="https://datafa.st/js/script.js">
-</script>
-
-
 import streamlit as st
 import google.generativeai as genai
 
